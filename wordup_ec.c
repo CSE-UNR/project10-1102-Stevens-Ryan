@@ -1,12 +1,16 @@
 // Author: Ryan Austin Q. Stevens
-// Purpose: Project 10, Making wordle, guess a 5 letter word in 5 attempts, listing problems in guess and incorrect and correct letters to help calculate a guess from a user.
+// Purpose: Project 10 extra credit, added random word selector from file and accounts for duplicate letters.
+// Due Date: May 6, 2025
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define FILE_NAME "mystery.txt"
 #define MAX_LENGTH 5
 #define MAX_WORDS 20
 #define MAX_GUESSES 6
+#define NUM_ROWS 15
 
 // Function prototype
 void readfile(char* filename, char* word);
@@ -29,6 +33,7 @@ int main() {
     int count = 1;
     bool guessed = false; // Flag to check if the word is guessed
 
+    // Read a random word from the file
     readfile(FILE_NAME, word);
 
     do {
@@ -57,7 +62,6 @@ void printGuess(char trackLetter[][MAX_LENGTH+1], char trackGuess[][MAX_LENGTH+1
 }
 
 void checkWinner(bool guessed, int count, char* word) {
-	//Slicing 2D array column
     char level[][15] = {
         "Cheater",
         "GOATED",
@@ -135,6 +139,7 @@ void getWord(char* input, int count) {
         valid = 1; // Assume valid input
         convertToLower(input);
 
+        // Check if more than 5 letters
         for (i = 0; input[i] != '\0'; i++) {
             if ( i >= MAX_LENGTH) {
                 valid = 0; // Set valid to false
@@ -142,12 +147,12 @@ void getWord(char* input, int count) {
                 break;
             }
         }
-
+        // Check if less than 5 letters
         if ( i < MAX_LENGTH && input[i] =='\0') {
             valid = 0; // Set valid to false
             printf("Your guess must be %d letters long. ", MAX_LENGTH);
         }
-
+        // Check if the letter is not a-z
         if (checkValidLetter(input) == 0) {
             valid = 0; // Set valid to false
             printf("Your guess must contain only letters. ");
@@ -205,30 +210,35 @@ int checkValidLetter(char* input) {
     return 1; // Set valid to true
 }
 
+
 // Function to read a word from a file
 void readfile(char* filename, char* word) {
+    char wordlist[NUM_ROWS][MAX_LENGTH+1]; // Array to store words
     // Open the file for reading
     FILE* fp;
     fp = fopen(FILE_NAME, "r");
     if (fp == NULL) {
         printf("Could not open file: %s", filename);
-        word[0] = '\0'; // Set word to empty string
         return;
-    } 
+    }
 
+    int size = 0;
     // Read line into an array of characters
-    if (fgets(word, MAX_LENGTH+1, fp) != NULL) {
-        for (int i = 0; word[i] != '\0'; i++) {
-            // Remove newline character if present or carriage return
-            if ((word[i] == '\n') || (word[i] == '\r')) {
-                word[i] = '\0';
-                break;
-            }
-        }
-    } else {
-        // return empty string
-        word[0] = '\0'; 
+    while (fscanf(fp, "%s", wordlist[size]) == 1) {
+        size++;
     }
     // Close the file
     fclose(fp);
+
+    // Generates number in range 0 to size-1
+    srand(time(NULL));  // Seed
+    int random = rand() % size;  
+
+    // Get random word
+    int i = 0;
+    while (wordlist[random][i] != '\0') {
+        word[i] = wordlist[random][i];
+        i++;
+    }
+    word[i] = '\0';
 }
